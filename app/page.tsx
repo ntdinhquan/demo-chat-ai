@@ -3,6 +3,7 @@
 import { useChat } from "@ai-sdk/react";
 import { useState } from "react";
 import { ChatMessage } from "@/components/ChatMessage";
+import { UsageBadge } from "@/components/UsageBadge";
 import type { ChatUIMessage } from "@/lib/chat-types";
 
 export default function Home() {
@@ -31,6 +32,7 @@ export default function Home() {
         <header className="tg-gradient flex items-center gap-2 px-6 py-5 text-white shadow-sm">
           <span className="text-xl font-bold">TravelGay</span>
           <span className="text-base opacity-90">AI Chat Demo</span>
+          <UsageBadge messages={messages} />
         </header>
 
         <main className="flex flex-1 flex-col gap-4 overflow-y-auto px-6 py-6">

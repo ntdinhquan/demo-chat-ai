@@ -1,7 +1,9 @@
 import { generateText } from "ai";
 import type { ChatTurn } from "@/lib/conversation";
 import { parseJsonResponse } from "./parseJson";
-import { stage1Model } from "./providers";
+import { STAGE1_MODEL_ID, stage1Model } from "./providers";
+
+export type UsageInfo = { model: string; inputTokens: number; outputTokens: number };
 
 export type LocationQueryJson = {
   intent: "location";
@@ -44,11 +46,12 @@ export type PlanningIncompleteJson = {
   raw_question: string;
 };
 
-export type Stage1Result =
+export type Stage1Result = { usage: UsageInfo } & (
   | { kind: "text"; text: string }
   | { kind: "location"; json: LocationQueryJson }
   | { kind: "planning"; json: PlanningCompleteJson }
-  | { kind: "planning-incomplete"; json: PlanningIncompleteJson };
+  | { kind: "planning-incomplete"; json: PlanningIncompleteJson }
+);
 
 const SYSTEM_PROMPT = `You are the AI travel assistant for travelgay.com, an LGBTQ+ travel platform. \
 Classify the user's latest message and respond according to exactly one of these three rules.
@@ -101,26 +104,41 @@ details back to the user.
 Always use the full conversation history to resolve references to earlier turns (e.g. "plan a trip \
 there" referring to a place asked about earlier).`;
 
+// Router/collector output is always short (a JSON payload or one clarifying
+// question) — this caps runaway generations without risking real truncation.
+const MAX_OUTPUT_TOKENS = 400;
+
 export async function runStage1(history: ChatTurn[]): Promise<Stage1Result> {
-  const { text } = await generateText({
+  const { text, usage } = await generateText({
     model: stage1Model,
     instructions: SYSTEM_PROMPT,
     messages: history,
+    maxOutputTokens: MAX_OUTPUT_TOKENS,
   });
+
+  const stage1Usage: UsageInfo = {
+    model: STAGE1_MODEL_ID,
+    inputTokens: usage.inputTokens ?? 0,
+    outputTokens: usage.outputTokens ?? 0,
+  };
 
   const parsed = parseJsonResponse(text);
 
   if (parsed?.intent === "location") {
-    return { kind: "location", json: parsed as unknown as LocationQueryJson };
+    return { kind: "location", json: parsed as unknown as LocationQueryJson, usage: stage1Usage };
   }
 
   if (parsed?.intent === "planning" && parsed.status === "complete") {
-    return { kind: "planning", json: parsed as unknown as PlanningCompleteJson };
+    return { kind: "planning", json: parsed as unknown as PlanningCompleteJson, usage: stage1Usage };
   }
 
   if (parsed?.intent === "planning" && parsed.status === "incomplete") {
-    return { kind: "planning-incomplete", json: parsed as unknown as PlanningIncompleteJson };
+    return {
+      kind: "planning-incomplete",
+      json: parsed as unknown as PlanningIncompleteJson,
+      usage: stage1Usage,
+    };
   }
 
-  return { kind: "text", text };
+  return { kind: "text", text, usage: stage1Usage };
 }
