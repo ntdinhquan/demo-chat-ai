@@ -104,9 +104,12 @@ details back to the user.
 Always use the full conversation history to resolve references to earlier turns (e.g. "plan a trip \
 there" referring to a place asked about earlier).`;
 
-// Router/collector output is always short (a JSON payload or one clarifying
-// question) — this caps runaway generations without risking real truncation.
-const MAX_OUTPUT_TOKENS = 400;
+// gpt-oss-120b is a reasoning model — its hidden reasoning tokens count
+// against this budget before it emits any visible text, so a tight cap here
+// can truncate the JSON mid-object (breaking JSON.parse) even though the
+// visible payload itself is short. Generous headroom is cheap at this
+// model's per-token rate, so bias toward correctness over trimming cost.
+const MAX_OUTPUT_TOKENS = 2000;
 
 export async function runStage1(history: ChatTurn[]): Promise<Stage1Result> {
   const { text, usage } = await generateText({
@@ -136,6 +139,19 @@ export async function runStage1(history: ChatTurn[]): Promise<Stage1Result> {
     return {
       kind: "planning-incomplete",
       json: parsed as unknown as PlanningIncompleteJson,
+      usage: stage1Usage,
+    };
+  }
+
+  // The model was clearly attempting a JSON payload (starts with `{`) but it
+  // didn't parse — most likely truncated by maxOutputTokens or malformed.
+  // Never show that raw/broken JSON to the user; log it for debugging and
+  // ask them to rephrase instead.
+  if (text.trim().startsWith("{")) {
+    console.warn("stage1: unparseable JSON-looking output", text);
+    return {
+      kind: "text",
+      text: "Sorry, I had trouble putting that together. Could you rephrase your request?",
       usage: stage1Usage,
     };
   }
