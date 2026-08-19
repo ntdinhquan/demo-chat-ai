@@ -3,6 +3,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { ChatUIMessage } from "@/lib/chat-types";
 import { DebugPanel } from "./DebugPanel";
+import { PlaceThumbnails } from "./PlaceThumbnails";
 import { PlanningSuggestions } from "./PlanningSuggestions";
 
 const markdownComponents = {
@@ -41,6 +42,7 @@ export const ChatMessage = memo(function ChatMessage({
       >
         {isUser ? text : <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>{text}</ReactMarkdown>}
       </div>
+      {debugPart && <PlaceThumbnails places={debugPart.data.retrieved} />}
       {debugPart && <DebugPanel data={debugPart.data} />}
       {suggestionsPart && onSuggestionSend && (
         <PlanningSuggestions data={suggestionsPart.data} onSend={onSuggestionSend} />
