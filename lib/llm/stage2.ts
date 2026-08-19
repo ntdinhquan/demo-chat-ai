@@ -12,7 +12,15 @@ Reference the retrieved places by name where relevant, and mention their website
 the traveler can follow up. If a retrieved photo URL is available you may mention that a photo is \
 available, but do not invent details (ratings, addresses, amenities) beyond what's given to you. If \
 no places were retrieved for the request, say so honestly and offer general LGBTQ+ travel advice \
-instead of inventing options.`;
+instead of inventing options.
+
+Keep the reply focused — a few short paragraphs or a short list is enough, no need to cover every \
+possible detail.`;
+
+// Keeps replies from running long enough to hurt latency/cost; the prompt
+// above also asks the model to stay concise so this cap is a backstop, not
+// the primary way replies are kept short.
+const MAX_OUTPUT_TOKENS = 700;
 
 export function runStage2(params: {
   history: ChatTurn[];
@@ -28,5 +36,6 @@ export function runStage2(params: {
     model: stage2Model,
     instructions: `${SYSTEM_PROMPT}\n\n${context}`,
     messages: history,
+    maxOutputTokens: MAX_OUTPUT_TOKENS,
   });
 }
