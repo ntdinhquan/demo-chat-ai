@@ -49,10 +49,13 @@ export default function Home() {
     // one, even if they'd scrolled up to read earlier history. Otherwise,
     // only auto-follow streaming replies while already at the bottom — a
     // user who scrolled away to read shouldn't get yanked back down.
+    // Only the DOM scroll happens here — the resulting native `scroll` event
+    // updates stickToBottomRef/showScrollButton via handleScroll below,
+    // rather than setting state directly inside this effect.
     if (lastMessage?.role === "user") {
-      scrollToBottom("smooth");
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     } else if (stickToBottomRef.current) {
-      scrollToBottom("auto");
+      bottomRef.current?.scrollIntoView({ behavior: "auto" });
     }
   }, [messages]);
 
