@@ -200,6 +200,19 @@ class MockRetriever implements Retriever {
     );
     if (scored.length === 0) return [];
 
+    // This mock only covers a handful of cities/countries. If the query names a
+    // real place (city/country) that isn't one of them, a bare category or
+    // generic-keyword overlap (e.g. "venue", "gay-friendly") can still clear the
+    // relative filter below purely by coincidence, surfacing a place with no real
+    // connection to what was asked. Require at least one exact city/country hit
+    // before trusting any result, rather than falling back to weaker signals.
+    const hasCityOrCountryMatch = PLACES.some((place) => {
+      const city = place.city.toLowerCase();
+      const country = place.country.toLowerCase();
+      return tokens.some((token) => city === token || country === token);
+    });
+    if (!hasCityOrCountryMatch) return [];
+
     // Drop generic-keyword-only noise once at least one strong (city/country/name) match exists.
     const maxScore = Math.max(...scored.map((hit) => hit.score));
     return scored
