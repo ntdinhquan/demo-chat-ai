@@ -6,7 +6,7 @@ const PASSENGER_OPTIONS = [
   { label: "Just me", value: "1 person" },
   { label: "2 people", value: "2 people" },
   { label: "3 people", value: "3 people" },
-  { label: "4+ people", value: "4 people" },
+  { label: "5 people", value: "5 people" },
 ];
 
 function Chip({ label, onClick }: { label: string; onClick: () => void }) {

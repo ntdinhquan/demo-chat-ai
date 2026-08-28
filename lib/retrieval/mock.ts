@@ -4,8 +4,8 @@ import type { PlaceRecord, Retriever, SearchHit } from "./types";
  * Hardcoded LGBTQ+-friendly places, standing in for a real vector DB +
  * Postgres. All names/links below are fictional demo data, not real
  * businesses. Spans the six cities used for continuity with the eval
- * project's test data: Bangkok, Berlin, Amsterdam, Provincetown, Cape Town,
- * Buenos Aires.
+ * project's test data (Bangkok, Berlin, Amsterdam, Provincetown, Cape Town,
+ * Buenos Aires), plus Tokyo, Osaka, Madrid, London, Mexico City, and Sydney.
  */
 const PLACES: PlaceRecord[] = [
   {
@@ -163,6 +163,188 @@ const PLACES: PlaceRecord[] = [
     links: { website: "https://www.travelgay.com/" },
     photos: ["https://picsum.photos/seed/bue-venue-1/640/400"],
     rating: 4.8,
+  },
+  {
+    id: "tyo-hotel-1",
+    name: "Ni-chome Rainbow Stay",
+    city: "Tokyo",
+    country: "Japan",
+    locationType: "hotel",
+    description:
+      "Compact, design-forward hotel steps from Shinjuku Ni-chome, Asia's densest concentration of gay bars, with LGBTQ+-trained front desk staff.",
+    keywords: ["gay-friendly", "shinjuku", "ni-chome", "boutique"],
+    links: { website: "https://www.travelgay.com/", booking: "https://www.travelgay.com/" },
+    photos: ["https://picsum.photos/seed/tyo-hotel-1/640/400"],
+    rating: 4.5,
+  },
+  {
+    id: "tyo-bar-1",
+    name: "Neon Alley Bar",
+    city: "Tokyo",
+    country: "Japan",
+    locationType: "bar",
+    description:
+      "Tiny, welcoming snack bar tucked in the alleys of Shinjuku Ni-chome — English-friendly owner, karaoke machine, standing room only most nights.",
+    keywords: ["gay bar", "ni-chome", "nightlife", "karaoke"],
+    links: { website: "https://www.travelgay.com/" },
+    photos: ["https://picsum.photos/seed/tyo-bar-1/640/400"],
+    rating: 4.6,
+  },
+  {
+    id: "tyo-restaurant-1",
+    name: "Rainbow Izakaya Yoi",
+    city: "Tokyo",
+    country: "Japan",
+    locationType: "restaurant",
+    description:
+      "Casual izakaya near Ni-chome popular with the local gay community for late-night skewers and sake after the bars.",
+    keywords: ["izakaya", "ni-chome", "late-night", "gay-friendly"],
+    links: { website: "https://www.travelgay.com/" },
+    photos: ["https://picsum.photos/seed/tyo-restaurant-1/640/400"],
+    rating: 4.4,
+  },
+  {
+    id: "tyo-event-1",
+    name: "Tokyo Rainbow Pride",
+    city: "Tokyo",
+    country: "Japan",
+    locationType: "event",
+    description:
+      "Japan's largest Pride festival, held every spring in Yoyogi Park with a parade through Shibuya and Harajuku.",
+    keywords: ["pride", "parade", "festival", "yoyogi park", "april"],
+    links: { website: "https://www.travelgay.com/" },
+    photos: ["https://picsum.photos/seed/tyo-event-1/640/400"],
+    rating: 4.8,
+  },
+  {
+    id: "osa-bar-1",
+    name: "Doyama Rainbow Lounge",
+    city: "Osaka",
+    country: "Japan",
+    locationType: "bar",
+    description:
+      "Friendly lounge bar in Osaka's Doyama-cho gay district, known for a mixed international crowd and weekend DJ sets.",
+    keywords: ["gay bar", "doyama", "nightlife", "lounge"],
+    links: { website: "https://www.travelgay.com/" },
+    photos: ["https://picsum.photos/seed/osa-bar-1/640/400"],
+    rating: 4.4,
+  },
+  {
+    id: "mad-hotel-1",
+    name: "Chueca Boutique Suites",
+    city: "Madrid",
+    country: "Spain",
+    locationType: "hotel",
+    description:
+      "Stylish suites in the heart of Chueca, Madrid's historic gay neighborhood, a short walk from the Pride parade route.",
+    keywords: ["gay-friendly", "chueca", "boutique", "central"],
+    links: { website: "https://www.travelgay.com/", booking: "https://www.travelgay.com/" },
+    photos: ["https://picsum.photos/seed/mad-hotel-1/640/400"],
+    rating: 4.7,
+  },
+  {
+    id: "mad-bar-1",
+    name: "Plaza Chueca Terrace Bar",
+    city: "Madrid",
+    country: "Spain",
+    locationType: "bar",
+    description:
+      "Buzzy terrace bar right on Plaza de Chueca, a classic starting point for a night out in Madrid's gay quarter.",
+    keywords: ["gay bar", "chueca", "terrace", "nightlife"],
+    links: { website: "https://www.travelgay.com/" },
+    photos: ["https://picsum.photos/seed/mad-bar-1/640/400"],
+    rating: 4.5,
+  },
+  {
+    id: "lon-hotel-1",
+    name: "Soho Pride Townhouse",
+    city: "London",
+    country: "United Kingdom",
+    locationType: "hotel",
+    description:
+      "Converted Georgian townhouse hotel on the edge of Soho, London's longtime gay village, minutes from Old Compton Street.",
+    keywords: ["gay-friendly", "soho", "old compton street", "townhouse"],
+    links: { website: "https://www.travelgay.com/", booking: "https://www.travelgay.com/" },
+    photos: ["https://picsum.photos/seed/lon-hotel-1/640/400"],
+    rating: 4.6,
+  },
+  {
+    id: "lon-bar-1",
+    name: "Old Compton Social",
+    city: "London",
+    country: "United Kingdom",
+    locationType: "bar",
+    description:
+      "Long-standing gay bar on Old Compton Street with big street-facing windows and a lively pre-club crowd.",
+    keywords: ["gay bar", "soho", "old compton street", "nightlife"],
+    links: { website: "https://www.travelgay.com/" },
+    photos: ["https://picsum.photos/seed/lon-bar-1/640/400"],
+    rating: 4.5,
+  },
+  {
+    id: "mex-hotel-1",
+    name: "Zona Rosa Rainbow Hotel",
+    city: "Mexico City",
+    country: "Mexico",
+    locationType: "hotel",
+    description:
+      "Mid-range hotel in Zona Rosa, Mexico City's main gay neighborhood, close to Amberes street's bars and clubs.",
+    keywords: ["gay-friendly", "zona rosa", "central", "mid-range"],
+    links: { website: "https://www.travelgay.com/", booking: "https://www.travelgay.com/" },
+    photos: ["https://picsum.photos/seed/mex-hotel-1/640/400"],
+    rating: 4.4,
+  },
+  {
+    id: "mex-bar-1",
+    name: "Amberes Nightclub",
+    city: "Mexico City",
+    country: "Mexico",
+    locationType: "bar",
+    description:
+      "High-energy gay club on Calle Amberes in Zona Rosa, with drag shows and reggaeton nights that run until sunrise.",
+    keywords: ["gay bar", "zona rosa", "nightlife", "drag show"],
+    links: { website: "https://www.travelgay.com/" },
+    photos: ["https://picsum.photos/seed/mex-bar-1/640/400"],
+    rating: 4.5,
+  },
+  {
+    id: "syd-hotel-1",
+    name: "Oxford Street Rainbow Hotel",
+    city: "Sydney",
+    country: "Australia",
+    locationType: "hotel",
+    description:
+      "Boutique hotel on Sydney's Oxford Street, the traditional heart of the city's gay scene and the Mardi Gras parade route.",
+    keywords: ["gay-friendly", "oxford street", "boutique", "mardi gras"],
+    links: { website: "https://www.travelgay.com/", booking: "https://www.travelgay.com/" },
+    photos: ["https://picsum.photos/seed/syd-hotel-1/640/400"],
+    rating: 4.7,
+  },
+  {
+    id: "syd-bar-1",
+    name: "Oxford Street Social Club",
+    city: "Sydney",
+    country: "Australia",
+    locationType: "bar",
+    description:
+      "Iconic multi-level gay bar on Oxford Street with drag brunches, karaoke nights, and a rooftop terrace.",
+    keywords: ["gay bar", "oxford street", "drag brunch", "nightlife"],
+    links: { website: "https://www.travelgay.com/" },
+    photos: ["https://picsum.photos/seed/syd-bar-1/640/400"],
+    rating: 4.6,
+  },
+  {
+    id: "syd-event-1",
+    name: "Sydney Gay and Lesbian Mardi Gras",
+    city: "Sydney",
+    country: "Australia",
+    locationType: "event",
+    description:
+      "One of the world's largest Pride festivals, culminating in a huge parade down Oxford Street every February/March.",
+    keywords: ["pride", "mardi gras", "parade", "festival", "oxford street"],
+    links: { website: "https://www.travelgay.com/" },
+    photos: ["https://picsum.photos/seed/syd-event-1/640/400"],
+    rating: 4.9,
   },
 ];
 
