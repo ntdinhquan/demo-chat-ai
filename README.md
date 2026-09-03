@@ -27,6 +27,15 @@ Copy the example file:
 ```bash
 cp .env.local.example .env.local
 ```
+## structure .env.example
+```bash
+
+AWS_BEDROCK_OPENAI_URL=
+AWS_BEDROCK_OPENAI_MANTLE_PATH_URL=
+OPENAI_API_KEY=
+AWS_BEARER_TOKEN_BEDROCK=
+```
+
 
 Then fill in `.env.local` (this is the same Bedrock Mantle gateway shared with other projects in the team, like `my-ai-eval`, `promtfoo-eval-tg`, `tg-chat-ai` — ask whoever manages credentials for the real values instead of provisioning new ones):
 

@@ -45,10 +45,6 @@ export default function Home() {
 
   useEffect(() => {
     const lastMessage = messages[messages.length - 1];
-    // Always snap to the newest message when the user themselves just sent
-    // one, even if they'd scrolled up to read earlier history. Otherwise,
-    // only auto-follow streaming replies while already at the bottom — a
-    // user who scrolled away to read shouldn't get yanked back down.
     if (lastMessage?.role === "user") {
       scrollToBottom("smooth");
     } else if (stickToBottomRef.current) {

@@ -133,6 +133,9 @@ Always use the full conversation history to resolve references to earlier turns 
 there" referring to a place asked about earlier).`;
 }
 
+
+// we can improve this by using object destructuring to get the values we need and validate them by zod lib 
+
 // gpt-oss-120b is a reasoning model — its hidden reasoning tokens count
 // against this budget before it emits any visible text, so a tight cap here
 // can truncate the JSON mid-object (breaking JSON.parse) even though the
