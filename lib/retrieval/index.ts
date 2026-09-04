@@ -1,8 +1,9 @@
-import { mockRetriever } from "./mock";
+import { warehouseRetriever } from "./warehouse";
 import type { Retriever } from "./types";
 
-/** The active Retriever. Swap this line for a pgvector/Postgres
- * implementation later — nothing else in the codebase needs to change. */
-export const retriever: Retriever = mockRetriever;
+/** The active Retriever. See lib/retrieval/mock.ts for the fictional
+ * dataset this replaced — nothing else in the codebase needs to change
+ * if this line is swapped again later. */
+export const retriever: Retriever = warehouseRetriever;
 
 export type { PlaceRecord, Retriever, SearchHit } from "./types";

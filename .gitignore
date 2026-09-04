@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# real data seeds (local dev only — restored into docker compose's postgres/chroma)
+chromadb_backup.tar.gz
+datawarehouse_*.sql
+/chroma-data/
+chroma-export.csv

@@ -1,0 +1,26 @@
+services:
+  warehouse-postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: db_user
+      POSTGRES_PASSWORD: localdevpassword
+      POSTGRES_DB: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - warehouse-pgdata:/var/lib/postgresql
+      - ./datawarehouse_20260903_095655.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+  warehouse-chroma:
+    image: chromadb/chroma:latest
+    environment:
+      IS_PERSISTENT: "TRUE"
+      PERSIST_DIRECTORY: /data
+      ANONYMIZED_TELEMETRY: "FALSE"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./chroma-data:/data
+
+volumes:
+  warehouse-pgdata:

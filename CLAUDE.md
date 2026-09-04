@@ -33,6 +33,18 @@ Copy `.env.local.example` to `.env.local` and fill in the Bedrock Mantle gateway
 - `AWS_BEDROCK_OPENAI_URL` — base URL for `openai.gpt-oss-120b` (Stage 1)
 - `AWS_BEDROCK_OPENAI_MANTLE_PATH_URL` — separate base URL for `google.gemma-4-31b` (Stage 2)
 - `OPENAI_API_KEY` (falls back to `AWS_BEARER_TOKEN_BEDROCK` if unset)
+- `WAREHOUSE_DATABASE_URL` / `CHROMA_URL` — the real-data retrieval backend (see "Retrieval" below). Separate from `DATABASE_URL`, which is reserved for the (not yet built) chat-history-persistence feature.
+
+### Seeding the retrieval databases (one-time, local dev)
+
+Two real-data exports live at the repo root, gitignored (`datawarehouse_*.sql`, `chromadb_backup.tar.gz`) — restore them into `docker-compose.yml`'s services:
+
+```bash
+mkdir chroma-data && tar -xzf chromadb_backup.tar.gz -C chroma-data
+docker compose up -d
+```
+
+Postgres auto-restores `datawarehouse_*.sql` on first boot (bind-mounted into `/docker-entrypoint-initdb.d`); Chroma reads `chroma-data/` directly as its persist directory. The compose file maps Postgres to host port `5433` (not `5432`) to avoid colliding with a locally-installed Postgres that `DATABASE_URL` might point at.
 
 ## Architecture
 
@@ -45,7 +57,15 @@ This is a demo of a 2-stage LGBTQ+ travel-assistant chat pipeline. Every user tu
 
 `app/api/chat/route.ts` parses Stage 1's output with `lib/llm/parseJson.ts` (tolerates markdown code fences around the JSON). If it doesn't parse as JSON with an `intent` field, Stage 1's raw text *is* the final answer and Stage 2 is skipped entirely. A `planning`/`incomplete` result also skips Stage 2 — the route streams `reply` as the message text and writes a `data-suggestions` chunk (`{missingFields}`) instead of `data-debug`, which the client uses to render quick-reply widgets (see Client section) instead of retrieval results.
 
-**Retrieval** (`lib/retrieval/`): a `Retriever` interface (`search(query) -> {id, score}[]`, `getDetails(ids) -> PlaceRecord[]`) with a mock implementation (`mock.ts`) hardcoding ~12 LGBTQ+-friendly places across six cities. `index.ts` is the single swap point for a future pgvector/Postgres implementation — nothing else should import from `mock.ts` directly. The mock's scoring in `scoreOf()` deliberately weights exact city/country/category field matches far higher than generic keyword substring hits (e.g. "gay-friendly", "nightlife" appear on nearly every record) — if the dataset grows, keep that weighting or unrelated cities will pollute results.
+**Retrieval** (`lib/retrieval/`): a `Retriever` interface (`search(query) -> {id, score}[]`, `getDetails(ids) -> PlaceRecord[]`). `index.ts` is the single swap point — nothing else should import from `warehouse.ts` or `mock.ts` (kept for reference, no longer wired up) directly. The live implementation, `warehouse.ts`, backs onto two real data sources restored via `docker-compose.yml` (see "Seeding the retrieval databases" above):
+- Postgres (`lib/retrieval/db.ts`, schema `datawarehouse`): structured `venues`/`hotels` rows joined to `countries`/`states` for geography. This is the **primary** search mechanism — `search()` ports the mock's field-weighted `scoreOf()` approach directly onto real rows (exact-substring city/state/country match scored far above a bare type/name-substring hit), including its "at least one real geo match or return nothing" gate. This isn't a stylistic choice carried over from the mock: a Chroma vector-similarity pass was tried first and dropped because it doesn't reliably encode geography — a handful of heavily-reviewed entities dominate any query containing generic words ("bar", "nightlife") regardless of city, even across hundreds of nearest neighbors.
+- Chroma (`lib/retrieval/chroma.ts`, collection `"vaults"`): LGBTQ+-friendliness evidence documents (Google Maps cards, reviews, crawled pages) tagged with `lgbt_mention`/`lgbt_kind` metadata and a `venue_ids`/`hotel_ids` field that joins back to the Postgres rows above. Used only as a **secondary** signal — `search()` adds a small score bump for entities the vault has LGBTQ+-related evidence for (`lgbt_mention: true`, fetched once per search via `collection.get({where: {...}})`, not a similarity query). Queries embed with `@chroma-core/default-embed`'s `DefaultEmbeddingFunction` (transformers.js/ONNX, runs in Node — the same "default" function the backup was built with), so the very first search after a fresh install is slow (seconds) while the model downloads; this is expected, not a bug.
+
+`next.config.ts`'s `serverExternalPackages` excludes `chromadb`/`@chroma-core/default-embed`/`@huggingface/transformers`/`onnxruntime-node`/`sharp` from Turbopack's bundler — they ship native bindings and non-JS asset files (READMEs, wasm) that bundling chokes on; Next.js loads them via native `require` at runtime instead.
+
+For hotels specifically, Postgres already carries a direct signal that's more reliable than any of the above: `hotels.extra.google_map.lgbtq_friendly` (boolean, populated for all 62 hotel rows) — `search()` applies the same small score bump for that as it does for vault evidence. Venues have no equivalent structured flag, which is why the vault-evidence bump matters more for them.
+
+Neither table has a dedicated `city` column (`states.name`, the finest-grained admin division on record, stands in for it — sometimes a county like "East Sussex" rather than the city itself) or a `photos` field (`PlaceRecord.photos` is always `[]`; `components/PlaceThumbnails.tsx` already no-ops on that, so it's a silent, known degradation rather than a bug).
 
 **Stage 2 — composer** (`lib/llm/stage2.ts`, `google.gemma-4-31b`): only invoked when Stage 1 produced structured JSON. `streamText()` with the Stage 1 JSON + retrieved `PlaceRecord[]` folded into `instructions`, plus the full conversation history as `messages`. No `temperature` is passed — Gemma rejects any explicit value on this gateway. The prompt branches on `stage1Json.intent`: a `location` result gets a short conversational reply, while a completed `planning` result gets an explicit instruction to produce a day-by-day itinerary (`Day 1`, `Day 2`, ... up to `trip.duration_days`), slotting retrieved places in where they fit and honestly labeling any day filled with a general (non-database) suggestion.
 
